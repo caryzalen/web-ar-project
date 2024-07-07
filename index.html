@@ -1,80 +1,15 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>AR Ring on Hand</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <meta charset="UTF-8">
+    <title>AR Ring Try-On</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 </head>
 <body>
-    <h1>Try on a Ring</h1>
     <video id="video" autoplay></video>
-    <canvas id="canvas"></canvas>
-    <script>
-        const videoElement = document.getElementById('video');
-        const canvasElement = document.getElementById('canvas');
-        const canvasCtx = canvasElement.getContext('2d');
-
-        // Initialize MediaPipe Hands
-        const hands = new Hands({locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-        }});
-        hands.setOptions({
-            maxNumHands: 1,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
-        });
-
-        hands.onResults(onResults);
-
-        // Initialize Camera
-        const camera = new Camera(videoElement, {
-            onFrame: async () => {
-                await hands.send({image: videoElement});
-            },
-            width: 640,
-            height: 480
-        });
-        camera.start();
-
-        function onResults(results) {
-            canvasCtx.save();
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            canvasCtx.drawImage(
-                results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                const landmarks = results.multiHandLandmarks[0];
-
-                // Draw the landmarks
-                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,
-                               {color: '#00FF00', lineWidth: 2});
-                drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
-
-                // Detect middle finger base (landmark 9) and tip (landmark 12)
-                const base = landmarks[9];
-                const tip = landmarks[12];
-
-                // Draw 3D ring at the base of the middle finger
-                drawRing(base, tip);
-            }
-            canvasCtx.restore();
-        }
-
-        function drawRing(base, tip) {
-            // Compute ring position and size
-            const ringSize = Math.sqrt(Math.pow(tip.x - base.x, 2) + Math.pow(tip.y - base.y, 2));
-            const ringX = base.x * canvasElement.width;
-            const ringY = base.y * canvasElement.height;
-
-            // Draw a simple ring (replace with Three.js for 3D ring)
-            canvasCtx.beginPath();
-            canvasCtx.arc(ringX, ringY, ringSize, 0, 2 * Math.PI);
-            canvasCtx.strokeStyle = 'blue';
-            canvasCtx.lineWidth = 4;
-            canvasCtx.stroke();
-        }
-    </script>
+    <div id="overlay"></div>
+    <script src="app.js"></script>
 </body>
 </html>
