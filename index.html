@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AR Ring Try-On</title>
+  <script src="https://apps.8thwall.com/xrweb"></script>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+</head>
+<body>
+  <a-scene xrweb="disableWorldTracking: false; disableDefaultControls: true;">
+    <a-assets>
+      <a-asset-item id="ringModel" src="path/to/your/ring-model.glb"></a-asset-item>
+    </a-assets>
+
+    <a-camera id="camera" position="0 1.6 0" look-controls wasd-controls>
+      <a-entity cursor="fuse: true; fuseTimeout: 1500;" position="0 0 -1" geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03" material="color: cyan; shader: flat">
+      </a-entity>
+    </a-camera>
+
+    <a-entity id="ring" gltf-model="#ringModel" scale="0.05 0.05 0.05" position="0 0 -2">
+    </a-entity>
+  </a-scene>
+
+  <script>
+    // Add logic to place the ring on the finger using hand tracking
+  </script>
+</body>
+</html>
