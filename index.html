@@ -16,6 +16,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="script.js"></script>
+    <a-scene
+      vr-mode-ui="enabled: false;"
+      loading-screen="enabled: false;"
+      renderer="logarithmicDepthBuffer: true;"
+      arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+      id="scene"
+      embedded
+      gesture-detector
+    >
+      <a-entity camera></a-entity>
+    </a-scene>
   </body>
 </html>
