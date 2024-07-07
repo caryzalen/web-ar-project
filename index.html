@@ -1,27 +1,104 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Jewelry Try-On</title>
-    <style>
-        body { margin: 0; overflow: hidden; }
-        #videoElement { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    <meta charset="utf-8">
+    <meta http-equiv="content-language" content="en-EN" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>WEBARROCKSHAND WATCH VTO DEMO</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet" />
+    <style type='text/css'>
+        body {
+            background-color: #333;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Roboto', sans-serif;
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            height: 100vh;
+        }
+        canvas {
+            left: 50%;
+            transform: translate(-50%, 0%) rotateY(180deg);
+        }
+        .modal {
+            display: flex;
+            flex-direction: column;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            transition-duration: 500ms;
+            position: fixed;
+        }
+        #instructions {
+            z-index: 9;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            font-size: 22px;
+        }
+        #instructions > div {
+            margin: auto;
+            text-align: center;
+            line-height: 1.5em;
+        }
+        .instructionsOK {
+            border: 1px solid white;
+            background: transparent;
+            color: white;
+            font-size: 22px;
+            padding: 22px;
+            margin: 1em;
+            cursor: pointer;
+            width: 200px;
+        }
+        .instructionsImg {
+            margin-top: 12px;
+            max-height: 50vh;
+            max-width: 50vw;
+        }
+        #changeCamera {
+            display: none;
+            position: fixed;
+            z-index: 4;
+            bottom: 6px;
+            left: 6px;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            font-variant: small-caps;
+            border: none;
+            padding: 12px;
+        }
     </style>
 </head>
 <body>
-    <video id="videoElement" autoplay playsinline></video>
-    <script type="module">
-        import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs';
-        import { Hands } from 'https://cdn.jsdelivr.net/npm/@mediapipe/hands';
-        import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
-        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three/examples/jsm/loaders/GLTFLoader.js';
+    <!-- instructions: -->
+    <div id='instructions' class='modal'>
+        <div>
+            Place your hand like that:<br/>
+            <img src='assets/VTOWristGuidline500px.png' class="instructionsImg" /><br/>
+            <button class='instructionsOK' onclick="hide_instructions()">OK</button>
+        </div>
+    </div>
+    <button onclick='change_camera()' id='changeCamera'>Change camera</button>
+    <canvas id="canvas"></canvas>
 
-        const videoElement = document.getElementById('videoElement');
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.127.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
-        // Initialize Mediapipe Hands
-        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+    <script type="text/javascript">
+        let cameraElement = document.createElement('video');
+        let canvasElement = document.getElementById('canvas');
+        let canvasCtx = canvasElement.getContext('2d');
+        let camera;
+
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+
         hands.setOptions({
             maxNumHands: 1,
             modelComplexity: 1,
@@ -31,50 +108,56 @@
 
         hands.onResults(onResults);
 
-        const camera = new Camera(videoElement, {
-            onFrame: async () => {
-                await hands.send({image: videoElement});
-            },
-            width: 640,
-            height: 480
-        });
-        camera.start();
+        async function hide_instructions() {
+            document.getElementById('instructions').style.display = 'none';
+            await setupCamera();
+        }
 
-        // Initialize Three.js
-        const scene = new THREE.Scene();
-        const camera3D = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+        function change_camera() {
+            camera.switchCamera();
+        }
 
-        const loader = new GLTFLoader();
-        let ring;
-        loader.load('path/to/your/ring/model.gltf', (gltf) => {
-            ring = gltf.scene;
-            ring.scale.set(0.05, 0.05, 0.05);
-            scene.add(ring);
-        });
+        async function setupCamera() {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment'
+                }
+            });
+            cameraElement.srcObject = stream;
+            await cameraElement.play();
 
-        camera3D.position.z = 5;
+            camera = new Camera(cameraElement, {
+                onFrame: async () => {
+                    await hands.send({ image: cameraElement });
+                },
+                width: 1280,
+                height: 720
+            });
+
+            camera.start();
+        }
 
         function onResults(results) {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 const landmarks = results.multiHandLandmarks[0];
-                const indexTip = landmarks[8];
-                const x = (indexTip.x * 2 - 1) * camera3D.aspect;
-                const y = -indexTip.y * 2 + 1;
-                if (ring) {
-                    ring.position.set(x, y, 0);
+
+                // Here you would add your 3D ring rendering logic based on the hand landmarks
+                // For simplicity, we'll just draw the hand landmarks
+                for (let i = 0; i < landmarks.length; i++) {
+                    const x = landmarks[i].x * canvasElement.width;
+                    const y = landmarks[i].y * canvasElement.height;
+                    canvasCtx.beginPath();
+                    canvasCtx.arc(x, y, 5, 0, 2 * Math.PI);
+                    canvasCtx.fillStyle = 'red';
+                    canvasCtx.fill();
                 }
             }
-            renderer.render(scene, camera3D);
+            canvasCtx.restore();
         }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera3D);
-        }
-        animate();
     </script>
 </body>
 </html>
