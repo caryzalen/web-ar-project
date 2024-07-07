@@ -23,7 +23,6 @@
     </head>
 
     <body style="margin: 0; overflow: hidden;">
-        <button id="flip-camera-btn">Flip Camera</button>
         <a-scene
             vr-mode-ui="enabled: false;"
             loading-screen="enabled: false;"
@@ -58,30 +57,29 @@
                     gesture-handler
                 ></a-entity>
             </a-marker>
-
+            <button id="flip-camera-btn">Flip Camera</button>
             <a-entity camera></a-entity>
+            <script>
+                document.getElementById('flip-camera-btn').addEventListener('click', function () {
+                    let sceneEl = document.querySelector('a-scene');
+                    let arSystem = sceneEl.systems["arjs"];
+  
+                    // Determine the new source type
+                    let newSourceType = arSystem.sourceType === 'webcam' ? 'back' : 'webcam';
+
+                    // Update AR.js source type
+                    arSystem.sourceType = newSourceType;
+
+                    // Stop AR.js, update the camera source type, and restart AR.js
+                    arSystem._onSourceStop();
+                    setTimeout(() => {
+                        arSystem._onSourceStart();
+                    }, 500); // Add a slight delay to ensure camera switches properly
+
+                    // Update the AR.js context with the new source type
+                    arSystem._initSource(newSourceType);
+                });
+            </script>
         </a-scene>
-
-        <script>
-            document.getElementById('flip-camera-btn').addEventListener('click', function () {
-                let sceneEl = document.querySelector('a-scene');
-                let arSystem = sceneEl.systems["arjs"];
-
-                // Determine the new source type
-                let newSourceType = arSystem.sourceType === 'webcam' ? 'back' : 'webcam';
-
-                // Update AR.js source type
-                arSystem.sourceType = newSourceType;
-
-                // Stop AR.js, update the camera source type, and restart AR.js
-                arSystem._onSourceStop();
-                setTimeout(() => {
-                    arSystem._onSourceStart();
-                }, 500); // Add a slight delay to ensure camera switches properly
-
-                // Update the AR.js context with the new source type
-                arSystem._initSource(newSourceType);
-            });
-        </script>
     </body>
 </html>
