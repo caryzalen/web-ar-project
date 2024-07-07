@@ -3,19 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Ring Try-On</title>
+  <title>Camera Test</title>
   <style>
-    body { margin: 0; overflow: hidden; }
-    #canvas { width: 100%; height: 100vh; display: block; }
+    body { margin: 0; }
+    video { display: block; width: 100%; height: auto; }
   </style>
 </head>
 <body>
-  <video id="video" autoplay style="display:none;"></video>
-  <canvas id="canvas"></canvas>
+  <video id="video" autoplay></video>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="script.js"></script>
+  <script>
+    const video = document.getElementById('video');
+
+    // 啟動相機
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        alert('請允許使用相機。');
+        console.error('相機啟動失敗:', err);
+      });
+
+    // 初始化 MediaPipe Hands
+    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+
+    hands.onResults(results => {
+      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        console.log('Hand detected:', results.multiHandLandmarks);
+      } else {
+        console.log('No hand detected');
+      }
+    });
+
+    const handLandmarker = async () => {
+      await hands.initialize();
+      hands.send({ image: video });
+      requestAnimationFrame(handLandmarker);
+    };
+    handLandmarker();
+  </script>
 </body>
 </html>
