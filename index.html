@@ -1,24 +1,91 @@
 <!doctype html>
 <html>
-    <head>
-        <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-        <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-        <script src="https://raw.githack.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
-        <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
-        <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
-    </head>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        video { display: none; }
+    </style>
+</head>
+<body>
+    <video id="video" autoplay></video>
+    <script>
+        // 初始化攝像頭
+        const videoElement = document.getElementById('video');
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                videoElement.srcObject = stream;
+            });
 
-    <body style="margin: 0; overflow: hidden;">
-        <a-scene
-            vr-mode-ui="enabled: false;"
-            loading-screen="enabled: false;"
-            renderer="logarithmicDepthBuffer: true;"
-            arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
-            id="scene"
-            embedded
-            gesture-detector
-        >
-            <a-entity camera></a-entity>
-        </a-scene>
-    </body>
+        // 初始化 MediaPipe 手部偵測
+        const hands = new Hands({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }});
+
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        hands.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({image: videoElement});
+            },
+            width: 640,
+            height: 480
+        });
+        camera.start();
+
+        // 初始化 Three.js 場景
+        const scene = new THREE.Scene();
+        const camera3D = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(0, 1, 1).normalize();
+        scene.add(light);
+
+        const loader = new THREE.GLTFLoader();
+        let ring;
+        loader.load('path_to_your_3d_ring_model.glb', function (gltf) {
+            ring = gltf.scene;
+            ring.scale.set(0.05, 0.05, 0.05);
+            scene.add(ring);
+        });
+
+        camera3D.position.z = 5;
+
+        function onResults(results) {
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                const wrist = landmarks[0];
+                const indexFingerBase = landmarks[5];
+
+                if (ring) {
+                    ring.position.set(
+                        (indexFingerBase.x * 2 - 1) * window.innerWidth / window.innerHeight,
+                        -(indexFingerBase.y * 2 - 1),
+                        -1
+                    );
+                }
+            }
+            renderer.render(scene, camera3D);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera3D);
+        }
+        animate();
+    </script>
+</body>
 </html>
