@@ -6,7 +6,22 @@
         <script src="https://raw.githack.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+        <style>
+            #flip-camera-btn {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                z-index: 100;
+                padding: 10px;
+                background-color: rgba(255, 255, 255, 0.7);
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                cursor: pointer;
+            }
+        </style>
     </head>
+
 
     <body style="margin: 0; overflow: hidden;">
         <button id="flip-camera-btn">Flip Camera</button>
