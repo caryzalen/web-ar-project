@@ -6,14 +6,29 @@
         <script src="https://raw.githack.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+        <style>
+            #flip-camera-btn {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                z-index: 100;
+                padding: 10px;
+                background-color: rgba(255, 255, 255, 0.7);
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                cursor: pointer;
+            }
+        </style>
     </head>
 
     <body style="margin: 0; overflow: hidden;">
+        <button id="flip-camera-btn">Flip Camera</button>
         <a-scene
             vr-mode-ui="enabled: false;"
             loading-screen="enabled: false;"
             renderer="logarithmicDepthBuffer: true;"
-            arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+            arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false; sourceType: back;"
             id="scene"
             embedded
             gesture-detector
@@ -46,5 +61,17 @@
 
             <a-entity camera></a-entity>
         </a-scene>
+
+        <script>
+            document.getElementById('flip-camera-btn').addEventListener('click', function () {
+                let sceneEl = document.querySelector('a-scene');
+                let arSystem = sceneEl.systems["arjs"];
+                arSystem.sourceType = arSystem.sourceType === 'webcam' ? 'back' : 'webcam';
+                sceneEl.renderer.forceContextLoss();
+                sceneEl.renderer.forceContextRestore();
+                arSystem.stop();
+                arSystem.start();
+            });
+        </script>
     </body>
 </html>
