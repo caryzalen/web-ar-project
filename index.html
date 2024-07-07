@@ -1,15 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>AR Ring Try-On</title>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-</head>
-<body>
-    <video id="video" autoplay></video>
-    <div id="overlay"></div>
-    <script src="app.js"></script>
-</body>
-</html>
+<!-- Copyright (c) 2023 8th Wall, Inc. -->
+<!-- head.html is optional; elements will be added to your html head before app.js is loaded. -->
+
+<!-- Use "8thwall:" meta tags to hook into 8th Wall's build process and developer tools. -->
+<meta name="8thwall:renderer" content="aframe:1.4.1" />
+<meta name="8thwall:package" content="@8thwall.xrextras" />
+
+<meta name="8thwall:package" content="@8thwall.landing-page" />
+<meta name="8thwall:package" content="@8thwall.coaching-overlay" />
