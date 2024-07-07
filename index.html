@@ -8,7 +8,7 @@
 <body>
   <a-scene xrweb="disableWorldTracking: false; disableDefaultControls: true;">
     <a-assets>
-      <a-asset-item id="ringModel" src="path/to/your/ring-model.glb"></a-asset-item>
+      <a-asset-item id="ringModel" src="ring-model.glb"></a-asset-item>
     </a-assets>
 
     <a-camera id="camera" position="0 1.6 0" look-controls wasd-controls>
@@ -21,7 +21,23 @@
   </a-scene>
 
   <script>
-    // Add logic to place the ring on the finger using hand tracking
+    AFRAME.registerComponent('hand-tracking', {
+      init: function () {
+        this.el.sceneEl.addEventListener('xrwebloaded', () => {
+          const xr = this.el.sceneEl.systems.xrweb.xr;
+          xr.addEventListener('handtrackupdate', (event) => {
+            const hand = event.detail;
+            if (hand && hand.indexFinger) {
+              const position = hand.indexFinger[0].position;
+              const ring = document.getElementById('ring');
+              ring.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
+            }
+          });
+        });
+      }
+    });
+
+    document.querySelector('a-scene').setAttribute('hand-tracking', '');
   </script>
 </body>
 </html>
